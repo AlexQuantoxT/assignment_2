@@ -1,5 +1,5 @@
 <?php
-namespace classes;
+namespace MyApp\classes;
 
 use PDO;
 use PDOException;
