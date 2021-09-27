@@ -15,10 +15,10 @@ class ConnDB{
         try {
             $pdo = new PDO($db,$this->username,$this->password);
             $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE,PDO::FETCH_ASSOC);
-        } catch (PDOException $th) {
-            print_r($th);
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        } catch (PDOException $e) {
+            return 'Connection failed: ' . $e->getMessage();
         }
         return $pdo;
-
     }
 }
