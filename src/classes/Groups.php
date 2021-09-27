@@ -19,7 +19,7 @@ class Groups extends ConnDB implements CRUD{
                 return json_encode($arr);
             }
             $group_name = $_POST['group_name'];
-            echo $group_name;
+            // echo $group_name;
             $sql = "insert into " . $this->table . " values(null,'{$group_name}');";
             $stmt = $this->conn->prepare($sql);
             $is_created = $stmt->execute();
@@ -48,7 +48,13 @@ class Groups extends ConnDB implements CRUD{
                 }
     }
     public function update(){
-        
+        $group_name=file_get_contents("php://input");
+        return $group_name;
+        // $sql = "UPDATE groups
+        //         SET groups.group_name = '{$group_name}'  
+        //         WHERE groups.groups_id = 3;";
+        // $stmt = $this->conn->prepare($sql);
+        // $stmt->execute();
     }
     public function delete(){
         
