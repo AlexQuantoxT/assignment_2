@@ -9,7 +9,7 @@ header('content-Type: application/json');
 
 //Calling Groups API CRUD
 $request = new Groups();
-echo ($request->getRequest());
+print_r ($request->getRequest());
 
 
 
