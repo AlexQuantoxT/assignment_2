@@ -3,56 +3,62 @@
 namespace MyApp\classes;
 
 use MyApp\interfaces\CRUD;
+use PDO;
+use PDOException;
 
 class Groups extends ConnDB implements CRUD
 {
     private $table = 'groups';
     private $conn;
-    public $group_name;
+    private $response = array();
 
     public function __construct()
     {
         $this->conn = $this->connect();
     }
-
+    //Function for creating new groups
     public function create()
     {
-        if (!isset($_POST['group_name'])) {
-            $arr = array('message: ' => 'EMPTY POST');
-            return json_encode($arr);
-        }
-        $group_name = $_POST['group_name'];
-        // echo $group_name;
-        $sql = "insert into " . $this->table . " values(null,'{$group_name}');";
-        $stmt = $this->conn->prepare($sql);
-        $is_created = $stmt->execute();
-        if ($is_created) {
-            return true;
+        $group = json_decode(file_get_contents("php://input"));
+        if (!isset($group->group_name)) {
+            $this->response = array("message" => "parameter not sent");
+            http_response_code(400);
+            return json_encode($this->response);
         } else {
-            $arr = array('message: ' => 'Faild');
-            return json_encode($arr);
-            // return http_response_code(404);
+            $name = $group->group_name;
+            $sql = "insert into " . $this->table . " values(null,:name);";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindParam(':name', $name, $this->conn::PARAM_STR);
+            try{
+                $stmt->execute();
+            }catch(PDOException $e){
+                print_r($e);
+            }
+            $this->response = array(http_response_code(201), "message" => "done");
+            return json_encode($this->response);
         }
     }
+    //Function for reading one group or all groups
     public function read()
     {
         $group = json_decode(file_get_contents("php://input"));
-        if (!isset($group->group_id) || empty($group->group_id)) {
+        if (!isset($group->group_id)) {
             $sql = 'select groups.groups_id, groups.group_name, roles.role_name, users.name, users.lastname 
                 from ((groups left join users on groups.groups_id = users.groups_id) 
                 left join roles on users.role_id = roles.role_id) order by groups.groups_id asc;';
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute();
-        if ($stmt->rowCount() > 0) {
-            foreach ($stmt as $key => $value) {
-                $arr['data']['groups'][] = $value;
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute();
+            if ($stmt->rowCount() > 0) {
+                foreach ($stmt as $key => $value) {
+                    $arr['data']['groups'][] = $value;
+                }
+                return json_encode($arr);
+            } else {
+                $this->response = array("message" => "nothing to return");
+                http_response_code(404);
+                return json_encode($this->response);
             }
-            return json_encode($arr);
         } else {
-            $arr = array('message: ' => 'NOTHING TO RETURN');
-            return json_encode($arr);
-        }
-        }else{
             $id = $group->group_id;
             $sql = "select groups.groups_id, groups.group_name, roles.role_name, users.name, users.lastname 
                 from ((groups left join users on groups.groups_id = users.groups_id) 
